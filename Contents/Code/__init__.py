@@ -96,7 +96,7 @@ def pickVideo(videos):
         pickedBitrate = bitrate
       else:
         pickedURL = None
-        pass
+
   return pickedURL
 
 #######################################
