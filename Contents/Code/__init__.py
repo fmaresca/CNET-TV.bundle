@@ -23,7 +23,6 @@ def MainMenu():
   
   for item in HTML.ElementFromURL(ROOT_URL).xpath('//li[@class="expandable"]'):
     title = item.xpath('./a/text()')[0].strip()
-    #Log(title)
     subMenus = []
     for subItem in item.xpath('.//nav/ul/li/a'):
       try:
@@ -91,12 +90,12 @@ def pickVideo(videos):
   for video in videos:
     bitrate = int(video.xpath('./l:BitRate', namespaces=CNET_NAMESPACE)[0].text)
     if bitrate > pickedBitrate:
-      pickedURL = video.xpath('./l:DeliveryUrl', namespaces=CNET_NAMESPACE)[0].text
-      if '.mp4' in pickedURL:
+      url = video.xpath('./l:DeliveryUrl', namespaces=CNET_NAMESPACE)[0].text
+      if '.mp4' in url:
         pickedBitrate = bitrate
+        pickedURL = url
       else:
-        pickedURL = None
-
+        pass
   return pickedURL
 
 #######################################
