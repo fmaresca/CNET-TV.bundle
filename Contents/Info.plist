@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
@@ -20,14 +20,16 @@
 	<array>
 		<string>AAC</string>
 	</array>
+	<key>PlexClientPlatformExclusions</key>
+	<string>Roku</string>
+	<key>PlexClientPlatforms</key>
+	<string>*</string>
 	<key>PlexFrameworkVersion</key>
 	<string>2</string>
 	<key>PlexMediaContainer</key>
 	<array>
 		<string>MP4</string>
 	</array>
-	<key>PlexClientPlatforms</key>
-	<string>*</string>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
 	<key>PlexVideoCodec</key>
