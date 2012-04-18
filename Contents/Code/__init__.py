@@ -1,5 +1,3 @@
-import datetime, re
-
 PLUGIN_PREFIX   = "/video/cnettv"
 ROOT_URL        = "http://cnettv.cnet.com/"
 SEARCH_API_URL  = "http://api.cnet.com/restApi/v1.0/videoSearch?%s=%s"
@@ -8,6 +6,7 @@ CNET_NAMESPACE  = {'l':'http://api.cnet.com/rest/v1.0/ns'}
 PARAM_NAME_MAP  = {'videoId':'videoIds', 'node':'categoryIds', 'videoProfileIds':'franchiseIds', 'videoProfileId':'franchiseIds'}
 
 RE_ONCLICK_ITEMS = Regex("'[^']+'")
+RE_TODAYS_VIDEO = Regex(r'[0-9,]+[0-9]+')
 
 ####################################################################################################
 def Start():
@@ -73,16 +72,16 @@ def Videos(title, key_param, params):
 
 #####################################
 def TodaysVideoId():
-  for script in HTML.ElementFromURL(ROOT_URL).xpath('//script'):
-    if script.text != None:
-      start = script.text.find('todaysPlaylist')
-      if start != -1:
-        matches = re.findall(r'[0-9,]+[0-9]+', script.text)
-        if len(matches) > 0:
-          videoId = matches[0]
-          return videoId
+    for script in HTML.ElementFromURL(ROOT_URL).xpath('//script'):
+        if script.text != None:
+            start = script.text.find('todaysPlaylist')
+            if start != -1:
+                matches = RE_TODAYS_VIDEO.findall(script.text)
+                if len(matches) > 0:
+                    videoId = matches[0]
+                    return videoId
 
-  return None
+    return None
 
 ###################################
 def pickThumb(images):
