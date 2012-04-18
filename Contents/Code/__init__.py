@@ -84,22 +84,7 @@ def TodaysVideoId():
 
   return None
 
-###################################   
-def pickVideo(videos):
-  pickedBitrate = 0
-  pickedURL = None
-  for video in videos:
-    bitrate = int(video.xpath('./l:BitRate', namespaces=CNET_NAMESPACE)[0].text)
-    if bitrate > pickedBitrate:
-      url = video.xpath('./l:DeliveryUrl', namespaces=CNET_NAMESPACE)[0].text
-      if '.mp4' in url:
-        pickedBitrate = bitrate
-        pickedURL = url
-      else:
-        pass
-  return pickedURL
-
-#######################################
+###################################
 def pickThumb(images):
   pickedHeight = 0
   pickedThumb = None
