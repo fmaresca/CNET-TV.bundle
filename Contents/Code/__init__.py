@@ -10,9 +10,9 @@ PARAM_NAME_MAP  = {'videoId':'videoIds', 'node':'categoryIds', 'videoProfileIds'
 ####################################################################################################
 def Start():
   Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, "CNET TV", "icon-default.png", "art-default.jpg")
-  MediaContainer.art = R('art-default.jpg')
-  MediaContainer.title1 ="CNET TV"
-  DirectoryItem.thumb=R("icon-default.png")
+  ObjectContainer.art = R('art-default.jpg')
+  ObjectContainer.title1 ="CNET TV"
+  DirectoryObject.thumb=R("icon-default.png")
 
 #####################################  
 def MainMenu():
