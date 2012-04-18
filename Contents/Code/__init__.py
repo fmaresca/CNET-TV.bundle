@@ -20,7 +20,7 @@ def Start():
 def MainMenu():
     oc = ObjectContainer()
     videoId = TodaysVideoId()
-    oc.add(DirectoryObject(key=Callback(Videos, key='videoIds', params=videoId), title='Today on CNET'))
+    oc.add(DirectoryObject(key=Callback(Videos, title="Today", key_param='videoIds', params=videoId), title='Today on CNET'))
   
     for item in HTML.ElementFromURL(ROOT_URL).xpath('//li[@class="expandable"]'):
         title = item.xpath('./a/text()')[0].strip()
@@ -47,29 +47,29 @@ def Menu(subMenus):
             title = unicode(subMenu[0])
             key_param = PARAM_NAME_MAP[subMenu[1]]
             params = subMenu[2]
-            oc.add(DirectoryObject(key=Callback(Videos, key_param=key_param, params=params), title=title))
+            oc.add(DirectoryObject(key=Callback(Videos, title=title, key_param=key_param, params=params), title=title))
         except:
             pass
 
   return oc
 
 #####################################
-def Videos(sender, key_param, params):
-  dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
-  searchUrl = SEARCH_API_URL % (key_param, params) + CNET_PARMS
+def Videos(title, key_param, params):
+    oc = ObjectContainer(title2=title)
+    searchUrl = SEARCH_API_URL % (key_param, params) + CNET_PARMS
 
-  for video in XML.ElementFromURL(searchUrl).xpath('//l:Videos/l:Video', namespaces=CNET_NAMESPACE):
-    # Only process media items that have video
-    if len(video.xpath('./l:VideoMedias', namespaces=CNET_NAMESPACE)) > 0:
-      media = pickVideo(video.xpath('./l:VideoMedias/l:VideoMedia', namespaces=CNET_NAMESPACE))
-      title = video.xpath('./l:Title', namespaces=CNET_NAMESPACE)[0].text
-      summary = video.xpath('./l:Description', namespaces=CNET_NAMESPACE)[0].text
-      thumb = pickThumb(video.xpath('./l:Images/l:Image', namespaces=CNET_NAMESPACE))
-      duration = int(video.xpath('./l:LengthSecs', namespaces=CNET_NAMESPACE)[0].text)*1000
-      subtitle = Datetime.ParseDate(video.xpath('./l:CreateDate', namespaces=CNET_NAMESPACE)[0].text).strftime('%a %b %d, %Y')
-      dir.Append(VideoItem(media, title, subtitle=subtitle, summary=summary, duration=duration, thumb=thumb))
+    for video in XML.ElementFromURL(searchUrl).xpath('//l:Videos/l:Video', namespaces=CNET_NAMESPACE):
+        # Only process media items that have video
+        if len(video.xpath('./l:VideoMedias', namespaces=CNET_NAMESPACE)) > 0:
+            media_url = video.xpath('./l:CnetTvURL', namespaces=CNET_NAMESPACE)[0].text
+            title = video.xpath('./l:Title', namespaces=CNET_NAMESPACE)[0].text
+            summary = video.xpath('./l:Description', namespaces=CNET_NAMESPACE)[0].text
+            images = video.xpath('./l:Images/l:Image', namespaces=CNET_NAMESPACE)
+            duration = int(video.xpath('./l:LengthSecs', namespaces=CNET_NAMESPACE)[0].text)*1000
+            subtitle = Datetime.ParseDate(video.xpath('./l:CreateDate', namespaces=CNET_NAMESPACE)[0].text).strftime('%a %b %d, %Y')
+            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Callback(pickThumb, images), tagline=subtitle)
 
-  return dir
+    return oc
 
 #####################################
 def TodaysVideoId():
