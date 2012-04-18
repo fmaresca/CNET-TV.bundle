@@ -39,24 +39,24 @@ def MainMenu():
   return oc
 
 #####################################
-def Menu(sender, subMenus):
-  dir = MediaContainer()
+def Menu(subMenus):
+    oc = ObjectContainer()
 
-  for subMenu in subMenus:
-    try:
-      title = unicode(subMenu[0])
-      key = PARAM_NAME_MAP[subMenu[1]]
-      params = subMenu[2]
-      dir.Append(Function(DirectoryItem(Videos, title), key=key, params=params))
-    except:
-      pass
+    for subMenu in subMenus:
+        try:
+            title = unicode(subMenu[0])
+            key_param = PARAM_NAME_MAP[subMenu[1]]
+            params = subMenu[2]
+            oc.add(DirectoryObject(key=Callback(Videos, key_param=key_param, params=params), title=title))
+        except:
+            pass
 
-  return dir
+  return oc
 
 #####################################
-def Videos(sender, key, params):
+def Videos(sender, key_param, params):
   dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
-  searchUrl = SEARCH_API_URL % (key, params) + CNET_PARMS
+  searchUrl = SEARCH_API_URL % (key_param, params) + CNET_PARMS
 
   for video in XML.ElementFromURL(searchUrl).xpath('//l:Videos/l:Video', namespaces=CNET_NAMESPACE):
     # Only process media items that have video
