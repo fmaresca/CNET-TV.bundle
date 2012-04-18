@@ -7,34 +7,36 @@ CNET_PARMS      = "&orderBy=productionDate~desc,createDate~desc&limit=20&iod=ima
 CNET_NAMESPACE  = {'l':'http://api.cnet.com/rest/v1.0/ns'}
 PARAM_NAME_MAP  = {'videoId':'videoIds', 'node':'categoryIds', 'videoProfileIds':'franchiseIds', 'videoProfileId':'franchiseIds'}
 
+RE_ONCLICK_ITEMS = Regex("'[^']+'")
+
 ####################################################################################################
 def Start():
-  Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, "CNET TV", "icon-default.png", "art-default.jpg")
-  ObjectContainer.art = R('art-default.jpg')
-  ObjectContainer.title1 ="CNET TV"
-  DirectoryObject.thumb=R("icon-default.png")
+    Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, "CNET TV", "icon-default.png", "art-default.jpg")
+    ObjectContainer.title1 ="CNET TV"
+    ObjectContainer.art = R('art-default.jpg')
+    DirectoryObject.thumb=R("icon-default.png")
 
 #####################################  
 def MainMenu():
-  dir = MediaContainer() 
-  videoId = TodaysVideoId()
-  dir.Append(Function(DirectoryItem(Videos, title='Today on CNET'), key='videoIds', params=videoId))
+    oc = ObjectContainer()
+    videoId = TodaysVideoId()
+    oc.add(DirectoryObject(key=Callback(Videos, key='videoIds', params=videoId), title='Today on CNET'))
   
-  for item in HTML.ElementFromURL(ROOT_URL).xpath('//li[@class="expandable"]'):
-    title = item.xpath('./a/text()')[0].strip()
-    subMenus = []
-    for subItem in item.xpath('.//nav/ul/li/a'):
-      try:
-        onClickItems = [p.strip("'") for p in re.findall("'[^']+'", subItem.get('onclick'))]
-        onClickItems[0] = onClickItems[0].replace(u'\x92',"'")
-        subMenus += [onClickItems]
-      except:
-        pass
+    for item in HTML.ElementFromURL(ROOT_URL).xpath('//li[@class="expandable"]'):
+        title = item.xpath('./a/text()')[0].strip()
+        subMenus = []
+        for subItem in item.xpath('.//nav/ul/li/a'):
+            try:
+                onClickItems = [p.strip("'") for p in RE_ONLCICK_ITEMS.findall(subItem.get('onclick'))]
+                onClickItems[0] = onClickItems[0].replace(u'\x92',"'")
+                subMenus += [onClickItems]
+            except:
+                pass
 
-    if len(subMenus) > 0:
-      dir.Append(Function(DirectoryItem(Menu, title), subMenus=subMenus))
+            if len(subMenus) > 0:
+                oc.add(DirectoryObject(key=Callback(Menu, subMenus=subMenus), title=title))
 
-  return dir
+  return oc
 
 #####################################
 def Menu(sender, subMenus):
