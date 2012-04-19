@@ -35,7 +35,7 @@ def MainMenu():
             if len(subMenus) > 0:
                 oc.add(DirectoryObject(key=Callback(Menu, subMenus=subMenus), title=title))
 
-  return oc
+    return oc
 
 #####################################
 def Menu(subMenus):
@@ -50,7 +50,7 @@ def Menu(subMenus):
         except:
             pass
 
-  return oc
+    return oc
 
 #####################################
 def Videos(title, key_param, params):
@@ -66,7 +66,7 @@ def Videos(title, key_param, params):
             images = video.xpath('./l:Images/l:Image', namespaces=CNET_NAMESPACE)
             duration = int(video.xpath('./l:LengthSecs', namespaces=CNET_NAMESPACE)[0].text)*1000
             subtitle = Datetime.ParseDate(video.xpath('./l:CreateDate', namespaces=CNET_NAMESPACE)[0].text).strftime('%a %b %d, %Y')
-            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Callback(pickThumb, images), tagline=subtitle)
+            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Callback(pickThumb, images=images)))
 
     return oc
 
