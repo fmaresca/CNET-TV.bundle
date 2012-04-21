@@ -60,13 +60,17 @@ def Videos(title, key_param, params):
     for video in XML.ElementFromURL(searchUrl).xpath('//l:Videos/l:Video', namespaces=CNET_NAMESPACE):
         # Only process media items that have video
         if len(video.xpath('./l:VideoMedias', namespaces=CNET_NAMESPACE)) > 0:
+            thumbs = []
             media_url = video.xpath('./l:CnetTvURL', namespaces=CNET_NAMESPACE)[0].text
             title = video.xpath('./l:Title', namespaces=CNET_NAMESPACE)[0].text
             summary = video.xpath('./l:Description', namespaces=CNET_NAMESPACE)[0].text
             images = video.xpath('./l:Images/l:Image', namespaces=CNET_NAMESPACE)
+            thumbs = SortImages(images)
+            thumb = thumbs[0]
+            thumbs = thumbs[1] ####Resource.ContentsOfURLWithFallback() should take a list for fallback but that isn't working atm [1:]
             duration = int(video.xpath('./l:LengthSecs', namespaces=CNET_NAMESPACE)[0].text)*1000
             subtitle = Datetime.ParseDate(video.xpath('./l:CreateDate', namespaces=CNET_NAMESPACE)[0].text).strftime('%a %b %d, %Y')
-            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Callback(pickThumb, images=images)))
+            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb, fallback=thumbs)))
 
     return oc
 
@@ -84,13 +88,17 @@ def TodaysVideoId():
     return None
 
 ###################################
-def pickThumb(images):
-  pickedHeight = 0
-  pickedThumb = None
+def SortImages(images=[]):
+  
+  thumbs = []
   for image in images:
-    height = int(image.get("height"))
-    if height > pickedHeight:
-      pickedThumb = image.xpath('./l:ImageURL', namespaces=CNET_NAMESPACE)[0].text
-      pickedHeight = height
+      height = image.get('height')
+      url = image.xpath('./l:ImageURL', namespaces=CNET_NAMESPACE)[0].text
+      thumbs.append({'height':height, 'url':url})
 
-  return pickedThumb
+  sorted_thumbs = sorted(thumbs, key=lambda thumb : int(thumb['height']), reverse=True)
+  thumb_list = []
+  for thumb in sorted_thumbs:
+      thumb_list.append(thumb['url'])
+
+  return thumb_list
