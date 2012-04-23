@@ -1,7 +1,6 @@
-PLUGIN_PREFIX   = "/video/cnettv"
 ROOT_URL        = "http://cnettv.cnet.com/"
 SEARCH_API_URL  = "http://api.cnet.com/restApi/v1.0/videoSearch?%s=%s"
-CNET_PARMS      = "&orderBy=productionDate~desc,createDate~desc&limit=20&iod=images,videoMedia,relatedLink,breadcrumb,relatedAssets,broadcast%2Clowcache&partTag=cntv&showBroadcast=true"
+CNET_PARAMS     = "&orderBy=productionDate~desc,createDate~desc&limit=20&iod=images,videoMedia,relatedLink,breadcrumb,relatedAssets,broadcast%2Clowcache&partTag=cntv&showBroadcast=true"
 CNET_NAMESPACE  = {'l':'http://api.cnet.com/rest/v1.0/ns'}
 PARAM_NAME_MAP  = {'videoId':'videoIds', 'node':'categoryIds', 'videoProfileIds':'franchiseIds', 'videoProfileId':'franchiseIds'}
 
@@ -10,13 +9,16 @@ RE_TODAYS_VIDEO = Regex(r'[0-9,]+[0-9]+')
 
 ####################################################################################################
 def Start():
-    Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, "CNET TV", "icon-default.png", "art-default.jpg")
-    ObjectContainer.title1 ="CNET TV"
-    ObjectContainer.art = R('art-default.jpg')
-    DirectoryObject.thumb=R("icon-default.png")
 
-#####################################  
+    Plugin.AddPrefixHandler("/video/cnettv", MainMenu, "CNET TV", "icon-default.png", "art-default.jpg")
+    ObjectContainer.title1 = "CNET TV"
+    ObjectContainer.art = R("art-default.jpg")
+    DirectoryObject.thumb = R("icon-default.png")
+    HTTP.CacheTime = CACHE_1HOUR
+
+####################################################################################################
 def MainMenu():
+
     oc = ObjectContainer()
     videoId = TodaysVideoId()
     oc.add(DirectoryObject(key=Callback(Videos, title="Today", key_param='videoIds', params=videoId), title='Today on CNET'))
@@ -24,21 +26,23 @@ def MainMenu():
     for item in HTML.ElementFromURL(ROOT_URL).xpath('//li[@class="expandable"]'):
         title = item.xpath('./a/text()')[0].strip()
         subMenus = []
+
         for subItem in item.xpath('.//nav/ul/li/a'):
             try:
-                onClickItems = [p.strip("'") for p in RE_ONLCICK_ITEMS.findall(subItem.get('onclick'))]
+                onClickItems = [p.strip("'") for p in RE_ONCLICK_ITEMS.findall(subItem.get('onclick'))]
                 onClickItems[0] = onClickItems[0].replace(u'\x92',"'")
                 subMenus += [onClickItems]
             except:
                 pass
 
-            if len(subMenus) > 0:
-                oc.add(DirectoryObject(key=Callback(Menu, subMenus=subMenus), title=title))
+        if len(subMenus) > 0:
+            oc.add(DirectoryObject(key=Callback(Menu, subMenus=subMenus), title=title))
 
     return oc
 
-#####################################
+####################################################################################################
 def Menu(subMenus):
+
     oc = ObjectContainer()
 
     for subMenu in subMenus:
@@ -52,10 +56,11 @@ def Menu(subMenus):
 
     return oc
 
-#####################################
+####################################################################################################
 def Videos(title, key_param, params):
+
     oc = ObjectContainer(title2=title)
-    searchUrl = SEARCH_API_URL % (key_param, params) + CNET_PARMS
+    searchUrl = SEARCH_API_URL % (key_param, params) + CNET_PARAMS
 
     for video in XML.ElementFromURL(searchUrl).xpath('//l:Videos/l:Video', namespaces=CNET_NAMESPACE):
         # Only process media items that have video
@@ -74,8 +79,9 @@ def Videos(title, key_param, params):
 
     return oc
 
-#####################################
+####################################################################################################
 def TodaysVideoId():
+
     for script in HTML.ElementFromURL(ROOT_URL).xpath('//script'):
         if script.text != None:
             start = script.text.find('todaysPlaylist')
@@ -87,9 +93,9 @@ def TodaysVideoId():
 
     return None
 
-###################################
+####################################################################################################
 def SortImages(images=[]):
-  
+
   thumbs = []
   for image in images:
       height = image.get('height')
