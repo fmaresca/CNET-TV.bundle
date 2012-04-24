@@ -66,11 +66,9 @@ def Videos(title, key_param, params):
             summary = video.xpath('./l:Description', namespaces=CNET_NAMESPACE)[0].text
             images = video.xpath('./l:Images/l:Image', namespaces=CNET_NAMESPACE)
             thumbs = SortImages(images)
-            thumb = thumbs[0]
-            thumbs = thumbs[1] ####Resource.ContentsOfURLWithFallback() should take a list for fallback but that isn't working atm [1:]
             duration = int(video.xpath('./l:LengthSecs', namespaces=CNET_NAMESPACE)[0].text)*1000
             subtitle = Datetime.ParseDate(video.xpath('./l:CreateDate', namespaces=CNET_NAMESPACE)[0].text).strftime('%a %b %d, %Y')
-            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb, fallback=thumbs)))
+            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumbs, fallback="icon-default.png")))
 
     return oc
 
