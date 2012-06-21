@@ -22,5 +22,11 @@
 	<array>
 		<string>H.264</string>
 	</array>
+	<key>PlexPluginTitle</key>
+	<string>CNET TV</string>
+	<key>PlexPluginCodePolicy</key>
+	<string>Cloud</string>
+	<key>PlexPluginArtResourceName</key>
+	<string>art-default.jpg</string>
 </dict>
 </plist>

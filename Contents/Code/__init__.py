@@ -8,22 +8,14 @@ RE_ONCLICK_ITEMS = Regex("'[^']+'")
 RE_TODAYS_VIDEO = Regex(r'[0-9,]+[0-9]+')
 
 ####################################################################################################
-def Start():
+def Main():
 
-    Plugin.AddPrefixHandler("/video/cnettv", MainMenu, "CNET TV", "icon-default.png", "art-default.jpg")
-    ObjectContainer.title1 = "CNET TV"
-    ObjectContainer.art = R("art-default.jpg")
-    DirectoryObject.thumb = R("icon-default.png")
-    HTTP.CacheTime = CACHE_1HOUR
-
-####################################################################################################
-def MainMenu():
-
-    oc = ObjectContainer()
-    videoId = TodaysVideoId()
+    oc = ObjectContainer(content = ContainerContent.Secondary)
+    el = HTML.ElementFromURL(ROOT_URL)
+    videoId = TodaysVideoId(el)
     oc.add(DirectoryObject(key=Callback(Videos, title="Today", key_param='videoIds', params=videoId), title='Today on CNET'))
   
-    for item in HTML.ElementFromURL(ROOT_URL).xpath('//li[@class="expandable"]'):
+    for item in el.xpath('//li[@class="expandable"]'):
         title = item.xpath('./a/text()')[0].strip()
         subMenus = []
 
@@ -41,9 +33,10 @@ def MainMenu():
     return oc
 
 ####################################################################################################
+@route("menu", subMenus = list)
 def Menu(subMenus):
 
-    oc = ObjectContainer()
+    oc = ObjectContainer(content = ContainerContent.Secondary)
 
     for subMenu in subMenus:
         try:
@@ -57,9 +50,10 @@ def Menu(subMenus):
     return oc
 
 ####################################################################################################
+@route("videos")
 def Videos(title, key_param, params):
 
-    oc = ObjectContainer(title2=title)
+    oc = ObjectContainer(title2 = title, content = ContainerContent.GenericVideos)
     searchUrl = SEARCH_API_URL % (key_param, params) + CNET_PARAMS
 
     for video in XML.ElementFromURL(searchUrl).xpath('//l:Videos/l:Video', namespaces=CNET_NAMESPACE):
@@ -78,9 +72,9 @@ def Videos(title, key_param, params):
     return oc
 
 ####################################################################################################
-def TodaysVideoId():
+def TodaysVideoId(el):
 
-    for script in HTML.ElementFromURL(ROOT_URL).xpath('//script'):
+    for script in el.xpath('//script'):
         if script.text != None:
             start = script.text.find('todaysPlaylist')
             if start != -1:
