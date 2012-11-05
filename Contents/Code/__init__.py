@@ -105,4 +105,5 @@ def SortImages(images=[]):
   for thumb in sorted_thumbs:
       thumb_list.append(thumb['url'])
 
-  return thumb_list
+  # Use the top 3 qualities
+  return thumb_list[:3]
