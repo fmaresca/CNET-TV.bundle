@@ -10,19 +10,17 @@ RE_TODAYS_VIDEO = Regex(r'[0-9,]+[0-9]+')
 ####################################################################################################
 def Start():
 
-    Plugin.AddPrefixHandler("/video/cnettv", MainMenu, "CNET TV", "icon-default.png", "art-default.jpg")
     ObjectContainer.title1 = "CNET TV"
-    ObjectContainer.art = R("art-default.jpg")
-    DirectoryObject.thumb = R("icon-default.png")
     HTTP.CacheTime = CACHE_1HOUR
 
 ####################################################################################################
+@handler('/video/cnettv', 'CNET TV')
 def MainMenu():
 
     oc = ObjectContainer()
     videoId = TodaysVideoId()
     oc.add(DirectoryObject(key=Callback(Videos, title="Today", key_param='videoIds', params=videoId), title='Today on CNET'))
-  
+
     for item in HTML.ElementFromURL(ROOT_URL).xpath('//li[@class="expandable"]'):
         title = item.xpath('./a/text()')[0].strip()
         subMenus = []
@@ -41,6 +39,7 @@ def MainMenu():
     return oc
 
 ####################################################################################################
+@route('/video/cnettv/submenus', subMenus=list)
 def Menu(subMenus):
 
     oc = ObjectContainer()
@@ -57,6 +56,7 @@ def Menu(subMenus):
     return oc
 
 ####################################################################################################
+@route('/video/cnettv/videos')
 def Videos(title, key_param, params):
 
     oc = ObjectContainer(title2=title)
@@ -73,11 +73,12 @@ def Videos(title, key_param, params):
             thumbs = SortImages(images)
             duration = int(video.xpath('./l:LengthSecs', namespaces=CNET_NAMESPACE)[0].text)*1000
             subtitle = Datetime.ParseDate(video.xpath('./l:CreateDate', namespaces=CNET_NAMESPACE)[0].text).strftime('%a %b %d, %Y')
-            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumbs, fallback="icon-default.png")))
+            oc.add(VideoClipObject(url=media_url, title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumbs)))
 
     return oc
 
 ####################################################################################################
+@route('/video/cnettv/todaysvideoid')
 def TodaysVideoId():
 
     for script in HTML.ElementFromURL(ROOT_URL).xpath('//script'):
@@ -92,18 +93,21 @@ def TodaysVideoId():
     return None
 
 ####################################################################################################
+@route('/video/cnettv/sortimages', images=list)
 def SortImages(images=[]):
 
-  thumbs = []
-  for image in images:
-      height = image.get('height')
-      url = image.xpath('./l:ImageURL', namespaces=CNET_NAMESPACE)[0].text
-      thumbs.append({'height':height, 'url':url})
+    thumbs = []
 
-  sorted_thumbs = sorted(thumbs, key=lambda thumb : int(thumb['height']), reverse=True)
-  thumb_list = []
-  for thumb in sorted_thumbs:
-      thumb_list.append(thumb['url'])
+    for image in images:
+        height = image.get('height')
+        url = image.xpath('./l:ImageURL', namespaces=CNET_NAMESPACE)[0].text
+        thumbs.append({'height':height, 'url':url})
 
-  # Use the top 3 qualities
-  return thumb_list[:3]
+    sorted_thumbs = sorted(thumbs, key=lambda thumb : int(thumb['height']), reverse=True)
+    thumb_list = []
+
+    for thumb in sorted_thumbs:
+        thumb_list.append(thumb['url'])
+
+    # Use the top 3 qualities
+    return thumb_list[:3]
