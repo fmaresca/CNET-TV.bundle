@@ -66,53 +66,6 @@ def ShowMenu(title):
     return oc
 
 ####################################################################################################
-@route('/video/cnettv/videosold')
-def VideosOld(url, title):
-
-    oc = ObjectContainer(title2=title)
-    html = HTML.ElementFromURL(url)
-    
-    # This picks up the json for the video players at the top of some show pages
-    try: json_data = html.xpath('//div[@class="cnetVideoPlayer"]/@data-cnet-video-options')[0]
-    except: json_data = None
-    if json_data:
-        player_json = JSON.ObjectFromString(json_data)
-        player_list = player_json['videos']
-        # The video player on the front page is picked up here but only list one in video not in videos
-        if player_list:
-            for item in player_list:
-                title = item['headline']
-                url = item['slug']
-                url = VID_URL + url
-                desc = item['dek']
-                duration = item['duration']
-                id = item['mpxId']
-                thumb = item['image']['path']
-                oc.add(VideoClipObject(url=url, title=title, duration=duration, summary=desc, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
-
-    video_list = html.xpath('//li/a[@class="imageLinkWrapper"]')
-    if len(video_list) < 1:
-        video_list = html.xpath('//div[contains(@id, "video-gallery")]//div[@class="col-2 video"]')
-        Log('the value of video_list is %s' %video_list)
-    
-    for video in video_list:
-        try: url = ROOT_URL + video.xpath('./@href')[0]
-        except:
-            url_data = video.xpath('./@data-video')[0]
-            url = RE_VIDEO_DATA.search(url_data).group(1)
-            url = VID_URL + url
-        try: title = video.xpath('.//div[@class="headline"]//text()')[0]
-        except: title = video.xpath('.//div[@class="gallery-title"]//text()')[0]
-        thumb = video.xpath('.//img/@src')[0]
-        try: duration = Datetime.MillisecondsFromString(video.xpath('.//span[@class="assetDuration"]//text()')[0])
-        except: duration = Datetime.MillisecondsFromString(video.xpath('.//span[@class="gallery-timestamp"]//text()')[0])
-        try: date = Datetime.ParseDate(video.xpath('.//span[@class="assetDate"]//text()')[0].strip())
-        except: date = Datetime.ParseDate(video.xpath('.//span[@class="gallery-date"]//text()')[0].strip())
-        oc.add(VideoClipObject(url=url, title=title, duration=duration, originally_available_at = date, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
-
-    return oc
-
-####################################################################################################
 # This function creates videos for all the different types of videos available.
 # Whether that be a top video player json, individual video json, or html. Many pages use more than one of these methods
 @route('/video/cnettv/videos')
