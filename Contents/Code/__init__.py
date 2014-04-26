@@ -32,7 +32,11 @@ def MainMenu():
         else:
             oc.add(DirectoryObject(key=Callback(Menu, title=title, url=url), title=title))
 
-    return oc
+    if len(oc) < 1:
+        Log ('still no value for objects')
+        return ObjectContainer(header="Empty", message="There are no sections to list right now.")
+    else:
+        return oc
 
 ####################################################################################################
 # This creates submenus for Products and HowTo menu items
@@ -46,7 +50,11 @@ def Menu(title, url):
         title = item.xpath('.//text()')[0].strip()
         oc.add(DirectoryObject(key=Callback(Videos, title=title, url=url), title=title))
 
-    return oc
+    if len(oc) < 1:
+        Log ('still no value for objects')
+        return ObjectContainer(header="Empty", message="There are no sections to list right now.")
+    else:
+        return oc
 
 ####################################################################################################
 # This creates the show menu using the carousel at the bottom of the main page to include thumbs
@@ -63,7 +71,11 @@ def ShowMenu(title):
         except: desc = ''
         oc.add(DirectoryObject(key=Callback(Videos, title=title, url=url), title=title, summary=desc, thumb=thumb))
 
-    return oc
+    if len(oc) < 1:
+        Log ('still no value for objects')
+        return ObjectContainer(header="Empty", message="There are no shows to list right now.")
+    else:
+        return oc
 
 ####################################################################################################
 # This function creates videos for all the different types of videos available.
@@ -122,7 +134,11 @@ def Videos(url, title):
         date = Datetime.ParseDate(video.xpath('.//span[@class="assetDate"]//text()')[0].strip())
         oc.add(VideoClipObject(url=url, title=title, duration=duration, originally_available_at = date, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
 
-    return oc
+    if len(oc) < 1:
+        Log ('still no value for objects')
+        return ObjectContainer(header="Empty", message="There are no videos to list right now.")
+    else:
+        return oc
 
 #####################################################################################################
 # This gets the title, url and description from the share video info that is produced on the page using the VIDEO_META url for each video
