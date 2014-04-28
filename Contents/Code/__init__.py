@@ -1,9 +1,9 @@
-ROOT_URL        = "http://www.cnet.com"
-VID_URL        = "http://www.cnet.com/videos/"
+ROOT_URL = "http://www.cnet.com"
+VID_URL = "http://www.cnet.com/videos/"
 RE_VIDEO_DATA = Regex('"slug":"(.+?)","vanityUrl"')
-VIDEO_META        = "http://www.cnet.com/videos/video-meta-xhr/%s/"
+VIDEO_META = "http://www.cnet.com/videos/video-meta-xhr/%s/"
 # Below is the ilist of shows that have a video player at the top
-VIDSHOW_LIST        = ['CNET On Cars', 'The 404', 'XCar', 'Googlicious', 'Next Big Thing', 'The Fix']
+VIDSHOW_LIST = ['CNET On Cars', 'The 404', 'XCar', 'Googlicious', 'Next Big Thing', 'The Fix']
 
 ####################################################################################################
 def Start():
@@ -17,7 +17,7 @@ def Start():
 def MainMenu():
 
     oc = ObjectContainer()
-    
+
     for item in HTML.ElementFromURL(VID_URL).xpath('//div[@id="videonav"]/ul/li'):
         url = item.xpath('./a/@href')[0]
         url = url.replace('#', '')
@@ -33,7 +33,6 @@ def MainMenu():
             oc.add(DirectoryObject(key=Callback(Menu, title=title, url=url), title=title))
 
     if len(oc) < 1:
-        Log ('still no value for objects')
         return ObjectContainer(header="Empty", message="There are no sections to list right now.")
     else:
         return oc
@@ -51,7 +50,6 @@ def Menu(title, url):
         oc.add(DirectoryObject(key=Callback(Videos, title=title, url=url), title=title))
 
     if len(oc) < 1:
-        Log ('still no value for objects')
         return ObjectContainer(header="Empty", message="There are no sections to list right now.")
     else:
         return oc
@@ -69,10 +67,9 @@ def ShowMenu(title):
         thumb = item.xpath('.//img/@src')[0]
         try: desc = item.xpath('.//p//text()')[0].strip()
         except: desc = ''
-        oc.add(DirectoryObject(key=Callback(Videos, title=title, url=url), title=title, summary=desc, thumb=thumb))
+        oc.add(DirectoryObject(key=Callback(Videos, title=title, url=url), title=title, summary=desc, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
 
     if len(oc) < 1:
-        Log ('still no value for objects')
         return ObjectContainer(header="Empty", message="There are no shows to list right now.")
     else:
         return oc
@@ -85,7 +82,7 @@ def Videos(url, title):
 
     oc = ObjectContainer(title2=title)
     html = HTML.ElementFromURL(url)
-    
+
     # This picks up the json for the video players at the top of some show pages
     try: json_data = html.xpath('//div[@class="cnetVideoPlayer"]/@data-cnet-video-options')[0]
     except: json_data = None
@@ -124,7 +121,7 @@ def Videos(url, title):
             (title, url, desc) = VideoMeta(mpx_id)
             duration = video_json['duration']
         oc.add(VideoClipObject(url=url, title=title, duration=duration, summary=desc, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
-        
+
     # This picks up other videos that do not have json data    
     for video in html.xpath('//li/a[@class="imageLinkWrapper"]'):
         url = ROOT_URL + video.xpath('./@href')[0]
@@ -135,7 +132,6 @@ def Videos(url, title):
         oc.add(VideoClipObject(url=url, title=title, duration=duration, originally_available_at = date, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
 
     if len(oc) < 1:
-        Log ('still no value for objects')
         return ObjectContainer(header="Empty", message="There are no videos to list right now.")
     else:
         return oc
@@ -152,5 +148,5 @@ def VideoMeta(mpx_id):
     title = video_json['title']
     url = video_json['url']
     desc = video_json['description']
-    
+
     return title, url, desc
