@@ -1,14 +1,14 @@
-ROOT_URL = "http://www.cnet.com"
-VID_URL = "http://www.cnet.com/videos/"
+ROOT_URL = 'http://www.cnet.com'
+VID_URL = 'http://www.cnet.com/videos/'
 RE_VIDEO_DATA = Regex('"slug":"(.+?)","vanityUrl"')
-VIDEO_META = "http://www.cnet.com/videos/video-meta-xhr/%s/"
+VIDEO_META = 'http://www.cnet.com/videos/video-meta-xhr/%s/'
 # Below is the ilist of shows that have a video player at the top
 VIDSHOW_LIST = ['CNET On Cars', 'The 404', 'XCar', 'Googlicious', 'Next Big Thing', 'The Fix']
 
 ####################################################################################################
 def Start():
 
-    ObjectContainer.title1 = "CNET TV"
+    ObjectContainer.title1 = 'CNET TV'
     HTTP.CacheTime = CACHE_1HOUR
 
 ####################################################################################################
@@ -67,7 +67,13 @@ def ShowMenu(title):
         thumb = item.xpath('.//img/@src')[0]
         try: desc = item.xpath('.//p//text()')[0].strip()
         except: desc = ''
-        oc.add(DirectoryObject(key=Callback(Videos, title=title, url=url), title=title, summary=desc, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
+
+        oc.add(DirectoryObject(
+            key = Callback(Videos, title=title, url=url),
+            title = title,
+            summary = desc,
+            thumb = Resource.ContentsOfURLWithFallback(url=thumb)
+        ))
 
     if len(oc) < 1:
         return ObjectContainer(header="Empty", message="There are no shows to list right now.")
@@ -86,6 +92,7 @@ def Videos(url, title):
     # This picks up the json for the video players at the top of some show pages
     try: json_data = html.xpath('//div[@class="cnetVideoPlayer"]/@data-cnet-video-options')[0]
     except: json_data = None
+
     if json_data:
         player_json = JSON.ObjectFromString(json_data)
         player_list = player_json['videos']
@@ -99,7 +106,14 @@ def Videos(url, title):
                 duration = item['duration']
                 id = item['mpxId']
                 thumb = item['image']['path']
-                oc.add(VideoClipObject(url=url, title=title, duration=duration, summary=desc, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
+
+                oc.add(VideoClipObject(
+                    url = url,
+                    title = title,
+                    duration = duration,
+                    summary = desc,
+                    thumb = Resource.ContentsOfURLWithFallback(url=thumb)
+                ))
 
     #This picks up videos that have individual json data including those in shows and the player on the front page
     for video in html.xpath('//*[@data-video]'):
@@ -120,7 +134,14 @@ def Videos(url, title):
             # here we use the mpxId to get the html code used in the page to pull the title, desc, and url from the share link code
             (title, url, desc) = VideoMeta(mpx_id)
             duration = video_json['duration']
-        oc.add(VideoClipObject(url=url, title=title, duration=duration, summary=desc, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
+
+        oc.add(VideoClipObject(
+            url = url,
+            title = title,
+            duration = duration,
+            summary = desc,
+            thumb = Resource.ContentsOfURLWithFallback(url=thumb)
+        ))
 
     # This picks up other videos that do not have json data    
     for video in html.xpath('//li/a[@class="imageLinkWrapper"]'):
@@ -129,7 +150,14 @@ def Videos(url, title):
         thumb = video.xpath('.//img/@src')[0]
         duration = Datetime.MillisecondsFromString(video.xpath('.//span[@class="assetDuration"]//text()')[0])
         date = Datetime.ParseDate(video.xpath('.//span[@class="assetDate"]//text()')[0].strip())
-        oc.add(VideoClipObject(url=url, title=title, duration=duration, originally_available_at = date, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
+
+        oc.add(VideoClipObject(
+            url = url,
+            title = title,
+            duration = duration,
+            originally_available_at = date,
+            thumb = Resource.ContentsOfURLWithFallback(url=thumb)
+        ))
 
     if len(oc) < 1:
         return ObjectContainer(header="Empty", message="There are no videos to list right now.")
