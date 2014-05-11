@@ -99,13 +99,13 @@ def Videos(url, title):
         # The video player on the front page is picked up here but only list one in video none in videos
         if player_list:
             for item in player_list:
-                title = item['headline']
+                title = item['headline'] if 'headline' in item else item['title']
                 url = item['slug']
                 url = VID_URL + url
-                desc = item['dek']
-                duration = item['duration']
+                desc = item['dek'] if 'dek' in item else None
+                duration = item['duration'] if 'duration' in item else None
                 id = item['mpxId']
-                thumb = item['image']['path']
+                thumb = item['image']['path'] if 'image' in item else ''
 
                 oc.add(VideoClipObject(
                     url = url,
