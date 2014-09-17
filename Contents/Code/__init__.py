@@ -61,12 +61,12 @@ def ShowMenu(title):
 
     oc = ObjectContainer(title2=title)
 
-    for item in HTML.ElementFromURL(VID_URL).xpath('//div[@section="carousel"]//ul/li/a'):
-        url = ROOT_URL + item.xpath('./@href')[0]
-        title = item.xpath('.//div[@class="content"]/h3//text()')[0].strip()
+    for item in HTML.ElementFromURL(VID_URL).xpath('//div[@section="carousel"]//ul/li[@section="slide"]'):
+        url = ROOT_URL + item.xpath('./a/@href')[0]
+        title = item.xpath('.//h3//text()')[0].strip()
         thumb = item.xpath('.//img/@src')[0]
         try: desc = item.xpath('.//p//text()')[0].strip()
-        except: desc = ''
+        except: desc = None
 
         oc.add(DirectoryObject(
             key = Callback(Videos, title=title, url=url),
@@ -119,7 +119,10 @@ def Videos(url, title):
     for video in html.xpath('//*[@data-video]'):
         thumb = video.xpath('.//img/@src')[0]
         video_data = video.xpath('./@data-video')[0]
-        video_json = JSON.ObjectFromString(video_data)
+        try:
+            video_json = JSON.ObjectFromString(video_data)[0]
+        except:
+            video_json = JSON.ObjectFromString(video_data)
         # The json for video player on the first page does not include half the info and does not nestle it in a 'video' 
         # So you have to break this into a try/except to get all the parts 
         try:
@@ -127,18 +130,21 @@ def Videos(url, title):
             url = video_json['video']['slug']
             url = VID_URL + url
             desc = video_json['video']['dek']
-            duration = video_json['video']['duration']
+            #duration = video_json['video']['duration']
         except:
-            mpx_id= video_json['mpxId']
+            try:
+                mpx_id = video_json['video'][0]['mpxId']
+            except:
+                mpx_id = video_json['mpxId']
             # The front video player does not provide a url for the video just the actual video file, so
-            # here we use the mpxId to get the html code used in the page to pull the title, desc, and url from the share link code
+            # here we use the mpxId to get the html code used in the page to pull the Log, desc, and url from the share link code
             (title, url, desc) = VideoMeta(mpx_id)
-            duration = video_json['duration']
+            #duration = video_json['duration']
 
         oc.add(VideoClipObject(
             url = url,
             title = title,
-            duration = duration,
+            #duration = duration,
             summary = desc,
             thumb = Resource.ContentsOfURLWithFallback(url=thumb)
         ))
