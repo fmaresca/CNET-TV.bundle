@@ -18,7 +18,7 @@ def MainMenu():
 
     oc = ObjectContainer()
 
-    for item in HTML.ElementFromURL(VID_URL).xpath('//div[@id="videonav"]/ul/li'):
+    for item in HTML.ElementFromURL(VID_URL).xpath('//div[@id="sidenav"]/ul/li'):
         url = item.xpath('./a/@href')[0]
         url = url.replace('#', '')
         title = item.xpath('./a/text()')[0].strip()
