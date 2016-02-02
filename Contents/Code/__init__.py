@@ -139,6 +139,10 @@ def Videos(url, title):
             # The front video player does not provide a url for the video just the actual video file, so
             # here we use the mpxId to get the html code used in the page to pull the Log, desc, and url from the share link code
             (title, url, desc) = VideoMeta(mpx_id)
+
+            if not title:
+                continue
+
             #duration = video_json['duration']
 
         oc.add(VideoClipObject(
@@ -176,8 +180,12 @@ def Videos(url, title):
 def VideoMeta(mpx_id):
 
     url = VIDEO_META %mpx_id
-    share_data = HTML.ElementFromURL(url).xpath('//ul/@data-sharebar-options')[0]
-    video_json = JSON.ObjectFromString(share_data)
+    share_data = HTML.ElementFromURL(url).xpath('//ul/@data-sharebar-options')
+
+    if len(share_data) < 1:
+        return None, None, None
+
+    video_json = JSON.ObjectFromString(share_data[0])
     # The video player on the front page uses video while all the players for shows use videos
     title = video_json['title']
     url = video_json['url']
