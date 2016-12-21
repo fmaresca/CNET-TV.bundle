@@ -1,194 +1,65 @@
-ROOT_URL = 'http://www.cnet.com'
-VID_URL = 'http://www.cnet.com/videos/'
-RE_VIDEO_DATA = Regex('"slug":"(.+?)","vanityUrl"')
-VIDEO_META = 'http://www.cnet.com/videos/video-meta-xhr/%s/'
-# Below is the ilist of shows that have a video player at the top
-VIDSHOW_LIST = ['CNET On Cars', 'The 404', 'XCar', 'Googlicious', 'Next Big Thing', 'The Fix']
+COLLECTION_FEED = 'https://feed.cnet.com/feed/river?version=3_0&contentTypes=content_video&collection=%s&locale=us&start=0&edition=us&release=3.8.2&d=iPad4,4&limit=30&version=3_3'
+COLLECTIONS = [
+	{'title': 'New Releases', 'collection_id': None},
+	{'title': 'Apple Byte', 'collection_id': 'b1a9dea1-31dc-4a54-88f7-cd7d6cde4bae'},
+	{'title': 'CNET Top 5', 'collection_id': '62f3b410-203f-49d9-b99b-fd2c2c2da1a2'},
+	{'title': 'CNET Update', 'collection_id': '8cd2040c-3418-4f94-8b69-f04447141857'},
+	{'title': 'Googlicious', 'collection_id': '4416863f-854f-45bc-a9c2-d6c1ca732bdf'},
+	{'title': 'How To', 'collection_id': '043b8a15-f01d-441a-8401-7db7466c3747'},
+	{'title': 'Netpicks', 'collection_id': 'eee6e8de-9fdf-4c2c-9979-79a08531a1c4'},
+	{'title': 'Next Big Thing', 'collection_id': '978ae22f-1c7a-4fe9-9d8f-c2cff67bbe32'},
+	{'title': 'Prizefight', 'collection_id': 'd53a83ea-bdb0-48a4-a88d-f23a5502f7d0'}
+]
+
+ART = 'art-default.jpg'
+ICON = 'icon-default.jpg'
 
 ####################################################################################################
 def Start():
 
-    ObjectContainer.title1 = 'CNET TV'
+    ObjectContainer.title1 = 'CNET'
     HTTP.CacheTime = CACHE_1HOUR
+    HTTP.Headers['User-Agent'] = 'CNET/20161207.3.8.2.60 CFNetwork/808.1.4 Darwin/16.1.0'
 
 ####################################################################################################
-# This uses the EXPLORE CNET VIDEO side menu on the main video page
-@handler('/video/cnettv', 'CNET TV')
+@handler('/video/cnettv', 'CNET', thumb=ICON, art=ART)
 def MainMenu():
 
     oc = ObjectContainer()
 
-    for item in HTML.ElementFromURL(VID_URL).xpath('//div[@id="sidenav"]/ul/li'):
-        url = item.xpath('./a/@href')[0]
-        url = url.replace('#', '')
-        title = item.xpath('./a/text()')[0].strip()
-
-        # Featured and New Releases link both come back to the main page, so we could get rid of one
-        if 'Featured' in title or 'New Releases' in title:
-            oc.add(DirectoryObject(key=Callback(Videos, title=title, url=VID_URL), title=title))
-        elif 'Shows' in title:
-            # Send it to a function that gives us a better display of shows with images
-            oc.add(DirectoryObject(key=Callback(ShowMenu, title=title), title=title))
-        else:
-            oc.add(DirectoryObject(key=Callback(Menu, title=title, url=url), title=title))
-
-    if len(oc) < 1:
-        return ObjectContainer(header="Empty", message="There are no sections to list right now.")
-    else:
-        return oc
-
-####################################################################################################
-# This creates submenus for Products and HowTo menu items
-@route('/video/cnettv/menu')
-def Menu(title, url):
-
-    oc = ObjectContainer()
-
-    for item in HTML.ElementFromURL(VID_URL).xpath('//ul[@id="%s"]/li/a' %url):
-        url = ROOT_URL + item.xpath('./@href')[0]
-        title = item.xpath('.//text()')[0].strip()
-        oc.add(DirectoryObject(key=Callback(Videos, title=title, url=url), title=title))
-
-    if len(oc) < 1:
-        return ObjectContainer(header="Empty", message="There are no sections to list right now.")
-    else:
-        return oc
-
-####################################################################################################
-# This creates the show menu using the carousel at the bottom of the main page to include thumbs
-@route('/video/cnettv/showmenu')
-def ShowMenu(title):
-
-    oc = ObjectContainer(title2=title)
-
-    for item in HTML.ElementFromURL(VID_URL).xpath('//div[@section="carousel"]//ul/li[@section="slide"]'):
-        url = ROOT_URL + item.xpath('./a/@href')[0]
-        title = item.xpath('.//h3//text()')[0].strip()
-        thumb = item.xpath('.//img/@src')[0]
-        try: desc = item.xpath('.//p//text()')[0].strip()
-        except: desc = None
+    for collection in COLLECTIONS:
 
         oc.add(DirectoryObject(
-            key = Callback(Videos, title=title, url=url),
-            title = title,
-            summary = desc,
-            thumb = Resource.ContentsOfURLWithFallback(url=thumb)
+            key = Callback(Collection, title=collection['title'], collection_id=collection['collection_id']),
+            title = collection['title']
         ))
 
-    if len(oc) < 1:
-        return ObjectContainer(header="Empty", message="There are no shows to list right now.")
-    else:
-        return oc
+    return oc
 
 ####################################################################################################
-# This function creates videos for all the different types of videos available.
-# Whether that be a top video player json, individual video json, or html. Many pages use more than one of these methods
-@route('/video/cnettv/videos')
-def Videos(url, title):
+@route('/video/cnettv/collection')
+def Collection(title, collection_id):
 
     oc = ObjectContainer(title2=title)
-    html = HTML.ElementFromURL(url)
 
-    # This picks up the json for the video players at the top of some show pages
-    try: json_data = html.xpath('//div[@class="cnetVideoPlayer"]/@data-cnet-video-options')[0]
-    except: json_data = None
-
-    if json_data:
-        player_json = JSON.ObjectFromString(json_data)
-        player_list = player_json['videos']
-        # The video player on the front page is picked up here but only list one in video none in videos
-        if player_list:
-            for item in player_list:
-                title = item['headline'] if 'headline' in item else item['title']
-                url = item['slug']
-                url = VID_URL + url
-                desc = item['dek'] if 'dek' in item else None
-                duration = item['duration'] if 'duration' in item else None
-                id = item['mpxId']
-                thumb = item['image']['path'] if 'image' in item else ''
-
-                oc.add(VideoClipObject(
-                    url = url,
-                    title = title,
-                    duration = duration,
-                    summary = desc,
-                    thumb = Resource.ContentsOfURLWithFallback(url=thumb)
-                ))
-
-    #This picks up videos that have individual json data including those in shows and the player on the front page
-    for video in html.xpath('//*[@data-video]'):
-        thumb = video.xpath('.//img/@src')[0]
-        video_data = video.xpath('./@data-video')[0]
-        try:
-            video_json = JSON.ObjectFromString(video_data)[0]
-        except:
-            video_json = JSON.ObjectFromString(video_data)
-        # The json for video player on the first page does not include half the info and does not nestle it in a 'video' 
-        # So you have to break this into a try/except to get all the parts 
-        try:
-            title = video_json['video']['headline']
-            url = video_json['video']['slug']
-            url = VID_URL + url
-            desc = video_json['video']['dek']
-            #duration = video_json['video']['duration']
-        except:
-            try:
-                mpx_id = video_json['video'][0]['mpxId']
-            except:
-                mpx_id = video_json['mpxId']
-            # The front video player does not provide a url for the video just the actual video file, so
-            # here we use the mpxId to get the html code used in the page to pull the Log, desc, and url from the share link code
-            (title, url, desc) = VideoMeta(mpx_id)
-
-            if not title:
-                continue
-
-            #duration = video_json['duration']
-
-        oc.add(VideoClipObject(
-            url = url,
-            title = title,
-            #duration = duration,
-            summary = desc,
-            thumb = Resource.ContentsOfURLWithFallback(url=thumb)
-        ))
-
-    # This picks up other videos that do not have json data    
-    for video in html.xpath('//li/a[@class="imageLinkWrapper"]'):
-        url = ROOT_URL + video.xpath('./@href')[0]
-        title = video.xpath('.//div[@class="headline"]//text()')[0]
-        thumb = video.xpath('.//img/@src')[0]
-        duration = Datetime.MillisecondsFromString(video.xpath('.//span[@class="assetDuration"]//text()')[0])
-        date = Datetime.ParseDate(video.xpath('.//span[@class="assetDate"]//text()')[0].strip())
-
-        oc.add(VideoClipObject(
-            url = url,
-            title = title,
-            duration = duration,
-            originally_available_at = date,
-            thumb = Resource.ContentsOfURLWithFallback(url=thumb)
-        ))
-
-    if len(oc) < 1:
-        return ObjectContainer(header="Empty", message="There are no videos to list right now.")
+    if collection_id:
+        url = COLLECTION_FEED % (collection_id)
     else:
-        return oc
+        url = COLLECTION_FEED.replace('&collection=%s', '')
 
-#####################################################################################################
-# This gets the title, url and description from the share video info that is produced on the page using the VIDEO_META url for each video
-@route('/video/cnettv/videometa')
-def VideoMeta(mpx_id):
+    json_obj = JSON.ObjectFromURL(url)
 
-    url = VIDEO_META %mpx_id
-    share_data = HTML.ElementFromURL(url).xpath('//ul/@data-sharebar-options')
+    for video in json_obj['river']['items']['item']:
 
-    if len(share_data) < 1:
-        return None, None, None
+        if video['assetId'] == '' or not video['permalink'].startswith('https://'):
+            continue
 
-    video_json = JSON.ObjectFromString(share_data[0])
-    # The video player on the front page uses video while all the players for shows use videos
-    title = video_json['title']
-    url = video_json['url']
-    desc = video_json['description']
+        oc.add(VideoClipObject(
+            url = video['permalink'],
+            title = video['headline'],
+            summary = video['description'],
+            originally_available_at = Datetime.ParseDate(video['timestamp']).date(),
+            thumb = Resource.ContentsOfURLWithFallback(url=video['defaultPhoneReviewGalleryImageUrl'])
+        ))
 
-    return title, url, desc
+    return oc
