@@ -2,12 +2,15 @@ COLLECTION_FEED = 'https://feed.cnet.com/feed/river?version=3_0&contentTypes=con
 COLLECTIONS = [
 	{'title': 'New Releases', 'collection_id': None},
 	{'title': 'Apple Byte', 'collection_id': 'b1a9dea1-31dc-4a54-88f7-cd7d6cde4bae'},
+	{'title': 'Carfection', 'collection_id': 'b43987f2-16f6-4f51-9156-871c2def5110'},
 	{'title': 'CNET Top 5', 'collection_id': '62f3b410-203f-49d9-b99b-fd2c2c2da1a2'},
 	{'title': 'CNET Update', 'collection_id': '8cd2040c-3418-4f94-8b69-f04447141857'},
 	{'title': 'Googlicious', 'collection_id': '4416863f-854f-45bc-a9c2-d6c1ca732bdf'},
 	{'title': 'How To', 'collection_id': '043b8a15-f01d-441a-8401-7db7466c3747'},
 	{'title': 'Netpicks', 'collection_id': 'eee6e8de-9fdf-4c2c-9979-79a08531a1c4'},
 	{'title': 'Next Big Thing', 'collection_id': '978ae22f-1c7a-4fe9-9d8f-c2cff67bbe32'},
+	{'title': 'News', 'collection_id': '040fa0bc-bf08-43dc-ac3d-ee7869a9fc85'},
+	{'title': 'On Cars', 'collection_id': '51f1fed7-3716-4593-8096-eb8865d0f2ce'},
 	{'title': 'Prizefight', 'collection_id': 'd53a83ea-bdb0-48a4-a88d-f23a5502f7d0'}
 ]
 
